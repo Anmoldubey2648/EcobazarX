@@ -1,0 +1,56 @@
+/* The Grid Layout */
+.product-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* The Holographic Card */
+.product-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    width: 250px;
+    padding: 15px;
+    text-align: center;
+    color: white;
+    transition: 0.3s;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+}
+
+.product-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 0 20px #00f2ff; /* Cyan Glow on hover */
+    border-color: #00f2ff;
+}
+
+.product-img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    background: rgba(0,0,0,0.3); /* Placeholder if no image */
+}
+
+.price-tag {
+    color: #00f2ff;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+.buy-btn {
+    background: linear-gradient(45deg, #ff00cc, #333399);
+    border: none;
+    padding: 8px 20px;
+    color: white;
+    border-radius: 20px;
+    cursor: pointer;
+    margin-top: 10px;
+}

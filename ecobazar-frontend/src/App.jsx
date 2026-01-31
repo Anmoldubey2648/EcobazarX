@@ -1,25 +1,40 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./components/Login";
-import Register from "./components/Register"; // <--- This MUST be here
+import Register from "./components/Register";
 import AdminDashboard from "./components/AdminDashboard";
 import SellerDashboard from "./components/SellerDashboard";
 import UserDashboard from "./components/UserDashboard";
+import Profile from "./components/Profile";
+import Shop from "./components/Shop";
+import ProductDetails from "./components/ProductDetails";
+import Cart from "./components/Cart";
+import MyOrders from "./components/MyOrders";
+
 function App() {
     return (
         <Router>
             <Routes>
-
-                <Route path="/admin-dashboard" element={<AdminDashboard />} />
-                {/* URL: /  --> Show Login */}
+                {/* --- PUBLIC ROUTES --- */}
                 <Route path="/" element={<Login />} />
-
-                {/* URL: /register --> Show Register (This was likely missing or wrong) */}
                 <Route path="/register" element={<Register />} />
+                <Route path="/cart" element={<Cart />} />
+                {/* This is the new Route for Product Details */}
+                <Route path="/product/:id" element={<ProductDetails />} />
+                <Route path="/my-orders" element={<MyOrders />} />
+                {/* --- PROTECTED ROUTES --- */}
 
-                {/* Dashboards */}
-                <Route path="/admin-dashboard" element={<h1 style={{color:'white'}}>Admin Dashboard</h1>} />
+                {/* 1. Admin */}
+                <Route path="/admin-dashboard" element={<AdminDashboard />} />
+
+                {/* 2. Seller */}
                 <Route path="/seller-dashboard" element={<SellerDashboard />} />
+
+                {/* 3. User / Buyer */}
+                <Route path="/shop" element={<Shop />} />
                 <Route path="/user-dashboard" element={<UserDashboard />} />
+
+                {/* 4. Common */}
+                <Route path="/profile" element={<Profile />} />
             </Routes>
         </Router>
     );

@@ -1,0 +1,229 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap');
+
+:root {
+    --primary-color: #059669; /* Emerald 600 */
+    --primary-gradient: linear-gradient(135deg, #059669 0%, #34d399 100%);
+    --surface-color: #ffffff;
+    --bg-color: #f0fdf4; /* Very light mint */
+    --text-main: #1f2937;
+    --text-light: #6b7280;
+    --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --radius-lg: 24px;
+}
+
+body {
+    margin: 0;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    overflow-x: hidden; /* Prevents horizontal scroll from animations */
+}
+
+/* --- ANIMATIONS --- */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.pro-body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    animation: fadeIn 0.6s ease-out; /* Page Fade-In Effect */
+}
+
+.pro-container {
+    max-width: 1280px;
+    margin: 40px auto;
+    padding: 0 24px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* --- NAVBAR --- */
+.navbar {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 16px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    box-shadow: var(--shadow-sm);
+}
+
+.brand-logo {
+    font-size: 1.5rem;
+    font-weight: 800;
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    cursor: pointer;
+}
+
+/* --- CARDS (With Floating Hover) --- */
+.pro-card {
+    background: var(--surface-color);
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(0,0,0,0.04);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+.pro-card:hover {
+    transform: translateY(-8px); /* FLOATING EFFECT */
+    box-shadow: var(--shadow-lg);
+    border-color: rgba(5, 150, 105, 0.2);
+}
+
+/* --- BUTTONS --- */
+button {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: var(--primary-gradient);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 12px;
+    border: none;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(5, 150, 105, 0.35);
+}
+
+/* LOGOUT BUTTON (Fixed Hover) */
+.btn-logout {
+    background: transparent;
+    color: #ef4444;
+    border: 1px solid #ef4444;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+.btn-logout:hover {
+    background: #ef4444;
+    color: white !important; /* Forces text white */
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
+
+/* SECONDARY BUTTON (New for 'Continue Shopping') */
+.btn-secondary {
+    background: #e5e7eb;
+    color: #374151;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+.btn-secondary:hover {
+    background: #d1d5db;
+    color: #111827;
+}
+
+.btn-profile, .btn-cart {
+    background: transparent;
+    color: var(--text-light);
+    border: none;
+    font-weight: 600;
+    padding: 10px 20px;
+}
+.btn-profile:hover, .btn-cart:hover {
+    color: var(--primary-color);
+    background: #f0fdf4;
+    border-radius: 8px;
+}
+
+/* --- INPUTS --- */
+input, select, textarea {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #f9fafb;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+}
+
+input:focus, select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.1);
+    background: white;
+}
+
+/* --- LOGIN SCREEN --- */
+.login-container {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: url('/bg.gif') no-repeat center center;
+    background-size: 100% 100%; /* Forces stretch */
+    position: relative;
+}
+
+.login-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    padding: 48px;
+    border-radius: 32px;
+    width: 100%;
+    max-width: 440px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    text-align: center;
+    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Badges */
+.badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+.badge-green { background: #d1fae5; color: #065f46; }
+.badge-pending { background: #fee2e2; color: #991b1b; }
+/* --- CUSTOM DROPDOWN STYLING --- */
+select {
+    /* 1. Remove the ugly default arrow */
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+
+    /* 2. Add a custom Green Chevron Arrow (SVG) */
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23059669' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1.2em;
+
+    /* 3. Fix Layout */
+    padding-right: 2.5rem !important; /* Make space for the icon */
+    cursor: pointer;
+    background-color: white;
+    width: auto !important; /* Stop it from stretching 100% wide */
+    min-width: 220px;       /* Give it a nice consistent width */
+}
+
+/* Fix for the options inside (Firefox/Chrome specific tweaks) */
+select option {
+    padding: 10px;
+    background: white;
+    color: #1f2937;
+    font-size: 0.95rem;
+}

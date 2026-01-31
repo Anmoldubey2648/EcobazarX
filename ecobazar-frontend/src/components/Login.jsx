@@ -1,85 +1,96 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useNavigate, Link } from "react-router-dom";
-import "./Auth.css"; // This connects the styling
+import "./Professional.css";
 
 const Login = () => {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [error, setError] = useState("");
+    const [formData, setFormData] = useState({ email: "", password: "" });
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
+
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
 
     const handleLogin = async (e) => {
         e.preventDefault();
-        setError(""); // Clear previous errors
-
+        setLoading(true);
         try {
-            const response = await axios.post("http://localhost:8084/auth/login", {
-                email: email,
-                password: password
-            });
+            const response = await axios.post("http://localhost:8084/auth/login", formData);
 
-            // LOGGING FOR DEBUGGING (Check your browser console!)
-            console.log("Login Response:", response.data);
+            // Save Token & Role
+            localStorage.setItem("token", response.data.token);
+            localStorage.setItem("role", response.data.role);
 
-            const { token, role } = response.data;
-
-            // --- THE NEW SECURITY CHECK ---
-            // If the backend didn't send a token (or sent null), STOP HERE.
-            if (!token || token === "null" || token === undefined) {
-                throw new Error("Login failed: No token received");
-            }
-
-            // If we have a token, SAVE IT
-            localStorage.setItem("token", token);
-            localStorage.setItem("role", role);
-
-            // Redirect based on role
-            if (role === "ADMIN") navigate("/admin-dashboard");
-            else if (role === "SELLER") navigate("/seller-dashboard");
-            else navigate("/user-dashboard");
+            // Redirect based on Role
+            if (response.data.role === "ADMIN") navigate("/admin-dashboard");
+            else if (response.data.role === "SELLER") navigate("/seller-dashboard");
+            else navigate("/shop");
 
         } catch (err) {
-            console.error("Login Error:", err);
-            // Show a specific error if the backend sent one, otherwise generic
-            setError("Invalid Email or Password!");
+            alert("Invalid Credentials! Please try again.");
+            setLoading(false);
         }
     };
 
-    // NOTICE: We use 'className="auth-container"' here.
-    // This is what triggers the background image!
     return (
-        <div className="auth-container">
-            <div className="auth-box">
-                <h2>Welcome Back  </h2>
-                <form onSubmit={handleLogin}>
-                    <div className="input-group">
-                        <label>Email</label>
+        <div className="login-container">
+            <div className="login-card">
+                {/* Logo / Icon */}
+                <div style={{ fontSize: "3rem", marginBottom: "10px" }}>🌿</div>
+
+                <h2 style={{
+                    fontSize: "2rem",
+                    marginBottom: "10px",
+                    background: "linear-gradient(135deg, #059669 0%, #10b981 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    fontWeight: "800"
+                }}>
+                    EcoBazar
+                </h2>
+
+                <p style={{ color: "#6b7280", marginBottom: "30px", fontSize: "0.95rem" }}>
+                    Welcome back! Please login to continue.
+                </p>
+
+                <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                    <div style={{ textAlign: "left" }}>
+                        <label style={{ fontSize: "0.85rem", fontWeight: "600", color: "#374151", marginLeft: "4px", marginBottom: "6px", display: "block" }}>Email Address</label>
                         <input
+                            name="email"
                             type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="you@example.com"
+                            onChange={handleChange}
                             required
+                            style={{ background: "white" }}
                         />
                     </div>
-                    <div className="input-group">
-                        <label>Password</label>
+
+                    <div style={{ textAlign: "left" }}>
+                        <label style={{ fontSize: "0.85rem", fontWeight: "600", color: "#374151", marginLeft: "4px", marginBottom: "6px", display: "block" }}>Password</label>
                         <input
+                            name="password"
                             type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="••••••••"
+                            onChange={handleChange}
                             required
+                            style={{ background: "white" }}
                         />
                     </div>
 
-                    {error && <p className="error-msg">{error}</p>}
-
-                    <button type="submit" className="auth-btn">Login</button>
+                    <button
+                        type="submit"
+                        className="btn-primary"
+                        style={{ width: "100%", marginTop: "10px", padding: "14px", fontSize: "1rem" }}
+                        disabled={loading}
+                    >
+                        {loading ? "Signing in..." : "Sign In →"}
+                    </button>
                 </form>
 
-                {/* This Link was missing in your screenshot! */}
-                <p className="switch-text">
-                    New to Ecobazar? <Link to="/register">Create an account</Link>
+                <p style={{ marginTop: "25px", color: "#6b7280", fontSize: "0.9rem" }}>
+                    Don't have an account? <span onClick={() => navigate("/register")} style={{ color: "#059669", fontWeight: "700", cursor: "pointer", textDecoration: "underline" }}>Create one</span>
                 </p>
             </div>
         </div>

@@ -1,53 +1,104 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import "./Auth.css"; // Reuse our cool background
+import "./Professional.css";
 
 const SellerDashboard = () => {
-    const navigate = useNavigate();
+    const [products, setProducts] = useState([]);
+    const [showModal, setShowModal] = useState(false);
 
-    // State for the product form
-    const [product, setProduct] = useState({
+    // Edit Mode State
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [editId, setEditId] = useState(null);
+
+    // --- UPDATED: Added 'category' to state ---
+    const [formData, setFormData] = useState({
         name: "",
-        description: "",
         price: "",
-        category: "General",
-        imageUrl: ""
+        description: "",
+        imageUrl: "",
+        carbonFootprint: "",
+        category: ""
     });
 
-    const handleChange = (e) => {
-        setProduct({ ...product, [e.target.name]: e.target.value });
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        fetchInventory();
+    }, []);
+
+    const fetchInventory = async () => {
+        try {
+            const token = localStorage.getItem("token");
+            const response = await axios.get("http://localhost:8084/products/seller-inventory", {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            setProducts(response.data);
+        } catch (err) { console.error("Error loading inventory", err); }
     };
 
-    const handleAddProduct = async (e) => {
-        e.preventDefault();
+    const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-        // 1. GET THE TICKET (Token) from the pocket
-        const token = localStorage.getItem("token");
+    const handleEditClick = (product) => {
+        setFormData({
+            name: product.name,
+            price: product.price,
+            description: product.description,
+            imageUrl: product.imageUrl,
+            carbonFootprint: product.carbonFootprint,
+            category: product.category || "" // Load existing category
+        });
+        setEditId(product.id);
+        setIsEditMode(true);
+        setShowModal(true);
+    };
 
-        // Safety check: If no token, kick them out
-        if (!token) {
-            alert("Please login first!");
-            navigate("/");
-            return;
-        }
+    const handleAddClick = () => {
+        // --- UPDATED: Reset category on add ---
+        setFormData({ name: "", price: "", description: "", imageUrl: "", carbonFootprint: "", category: "" });
+        setIsEditMode(false);
+        setEditId(null);
+        setShowModal(true);
+    };
 
+    const handlePublish = async () => {
         try {
-            // 2. SEND THE TICKET in the Header
-            await axios.post("http://localhost:8084/products/add", product, {
-                headers: {
-                    "Authorization": `Bearer ${token}` // <--- THE KEY PART
-                }
-            });
+            const token = localStorage.getItem("token");
+            const payload = {
+                ...formData,
+                price: parseFloat(formData.price) || 0,
+                carbonFootprint: parseFloat(formData.carbonFootprint) || 0
+            };
 
-            alert("Product Added Successfully!");
-            // Clear form
-            setProduct({ name: "", description: "", price: "", category: "General", imageUrl: "" });
+            if (isEditMode) {
+                await axios.put(`http://localhost:8084/products/update/${editId}`, payload, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                alert("Product Updated! 🔄");
+            } else {
+                await axios.post("http://localhost:8084/products/add", payload, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                alert("Product Submitted! ⏳");
+            }
 
+            setShowModal(false);
+            fetchInventory();
         } catch (err) {
-            console.error(err);
-            alert("Failed to add product. Are you sure you are a Seller?");
+            console.error("Error saving:", err);
+            alert("Failed to save product.");
         }
+    };
+
+    const handleDelete = async (id) => {
+        if(!window.confirm("Permanently delete this item?")) return;
+        try {
+            const token = localStorage.getItem("token");
+            await axios.delete(`http://localhost:8084/products/delete/${id}`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            fetchInventory();
+        } catch (err) { alert("Delete failed."); }
     };
 
     const handleLogout = () => {
@@ -56,35 +107,115 @@ const SellerDashboard = () => {
     };
 
     return (
-        <div className="auth-container">
-            <div className="auth-box" style={{ width: "400px" }}>
-                <h2 style={{ color: "#00f2ff" }}>SELLER DASHBOARD</h2>
-                <p>Upload New Inventory</p>
-
-                <form onSubmit={handleAddProduct}>
-                    <div className="input-group">
-                        <input type="text" name="name" placeholder="Product Name" value={product.name} onChange={handleChange} required />
-                    </div>
-                    <div className="input-group">
-                        <input type="text" name="description" placeholder="Description" value={product.description} onChange={handleChange} required />
-                    </div>
-                    <div className="input-group">
-                        <input type="number" name="price" placeholder="Price ($)" value={product.price} onChange={handleChange} required />
-                    </div>
-                    <div className="input-group">
-                        <input type="text" name="category" placeholder="Category" value={product.category} onChange={handleChange} required />
-                    </div>
-                    <div className="input-group">
-                        <input type="text" name="imageUrl" placeholder="Image URL (Optional)" value={product.imageUrl} onChange={handleChange} />
-                    </div>
-
-                    <button type="submit" className="auth-btn">ADD PRODUCT</button>
-                </form>
-
-                <button onClick={handleLogout} style={{ marginTop: "20px", background: "red", color: "white", border: "none", padding: "10px", cursor: "pointer", width: "100%" }}>
-                    Logout
-                </button>
+        <div className="pro-body">
+            {/* NAVBAR */}
+            <div className="navbar">
+                <div className="brand-logo">Seller Hub 📦</div>
+                <div className="nav-buttons">
+                    <button className="btn-primary" onClick={handleAddClick}>+ New Product</button>
+                    <button className="btn-profile" onClick={() => navigate("/profile")}>Profile</button>
+                    <button className="btn-logout" onClick={handleLogout}>Logout</button>
+                </div>
             </div>
+
+            {/* MAIN CONTENT */}
+            <div className="pro-container">
+                <h3 style={{ marginBottom: "25px", fontSize: "1.5rem", fontWeight: "600", color: "#2c3e50" }}>
+                    Your Inventory
+                </h3>
+
+                {products.length === 0 ? (
+                    <div style={{ textAlign: "center", padding: "60px", color: "#888", background: "white", borderRadius: "16px" }}>
+                        <p style={{fontSize: "1.2rem"}}>No items found. Start selling today! 🚀</p>
+                        <button className="btn-primary" onClick={handleAddClick} style={{marginTop: "15px"}}>Create First Product</button>
+                    </div>
+                ) : (
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "25px" }}>
+                        {products.map(p => (
+                            <div key={p.id} className="pro-card" style={{ position: "relative" }}>
+
+                                {/* STATUS BADGE */}
+                                <div style={{ position: "absolute", top: "15px", right: "15px", zIndex: 10 }}>
+                                    {p.isApproved ? (
+                                        <span className="badge badge-green">● Live</span>
+                                    ) : (
+                                        <span className="badge badge-pending">⏳ Pending</span>
+                                    )}
+                                </div>
+
+                                {/* IMAGE */}
+                                <div style={{ height: "180px", background: "#f8f9fa", display: "flex", alignItems: "center", justifyContent: "center", borderBottom: "1px solid #eee" }}>
+                                    {p.imageUrl ? (
+                                        <img src={p.imageUrl} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                                    ) : <span style={{color:"#ccc"}}>No Image</span>}
+                                </div>
+
+                                {/* INFO */}
+                                <div style={{ padding: "20px" }}>
+                                    <h4 style={{ margin: "0 0 5px 0", fontSize: "1.1rem", color: "#2c3e50" }}>{p.name}</h4>
+
+                                    {/* Display Category */}
+                                    <div style={{ fontSize: "0.85rem", color: "#aaa", marginBottom: "10px", fontStyle: "italic" }}>
+                                        {p.category || "Uncategorized"}
+                                    </div>
+
+                                    <div style={{ display: "flex", justifyContent: "space-between", color: "#666", fontSize: "0.9rem", marginBottom: "15px" }}>
+                                        <span style={{ fontWeight: "700", color: "#2c3e50", fontSize: "1.1rem" }}>${p.price}</span>
+                                        <span style={{ background: "#e0f2f1", color: "#00695c", padding: "2px 8px", borderRadius: "8px", fontSize: "0.8rem" }}>
+                                            CO2: {p.carbonFootprint}kg
+                                        </span>
+                                    </div>
+
+                                    {/* BUTTONS */}
+                                    <div style={{ display: "flex", gap: "10px" }}>
+                                        <button onClick={() => handleEditClick(p)} style={{ flex: 1, padding: "8px", borderRadius: "8px", border: "1px solid #ddd", background: "white", cursor: "pointer", fontWeight: "600", color: "#555" }}>
+                                            Edit
+                                        </button>
+                                        <button onClick={() => handleDelete(p.id)} style={{ flex: 1, padding: "8px", borderRadius: "8px", border: "none", background: "#ffeaea", color: "#d63031", cursor: "pointer", fontWeight: "600" }}>
+                                            Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* MODAL */}
+            {showModal && (
+                <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1000, backdropFilter: "blur(3px)" }}>
+                    <div style={{ background: "white", padding: "30px", borderRadius: "16px", width: "400px", boxShadow: "0 20px 50px rgba(0,0,0,0.2)", position: "relative" }}>
+                        <button onClick={() => setShowModal(false)} style={{ position: "absolute", top: "15px", right: "15px", background: "none", border: "none", fontSize: "1.5rem", cursor: "pointer", color: "#aaa" }}>&times;</button>
+
+                        <h3 style={{ marginTop: 0, color: "#2c3e50", textAlign: "center" }}>
+                            {isEditMode ? "Update Product" : "New Listing 🌿"}
+                        </h3>
+
+                        <div style={{ display: "flex", flexDirection: "column", gap: "15px", marginTop: "20px" }}>
+                            <input name="name" placeholder="Product Name" value={formData.name} onChange={handleChange} />
+
+                            {/* --- NEW CATEGORY INPUT --- */}
+                            <input name="category" placeholder="Category (e.g. Soap)" value={formData.category} onChange={handleChange} />
+
+                            <div style={{ display: "flex", gap: "10px" }}>
+                                <input name="price" type="number" placeholder="Price ($)" value={formData.price} onChange={handleChange} />
+                                <input name="carbonFootprint" type="number" placeholder="CO2 (kg)" value={formData.carbonFootprint} onChange={handleChange} />
+                            </div>
+
+                            <textarea name="description" placeholder="Short Description..." rows="3" value={formData.description} onChange={handleChange} style={{ resize: "none" }} />
+                            <input name="imageUrl" placeholder="Image URL (http://...)" value={formData.imageUrl} onChange={handleChange} />
+
+                            <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+                                <button onClick={() => setShowModal(false)} style={{ flex: 1, padding: "12px", borderRadius: "8px", border: "none", background: "#f1f2f6", cursor: "pointer", fontWeight: "600" }}>Cancel</button>
+                                <button onClick={handlePublish} className="btn-primary" style={{ flex: 2, borderRadius: "8px" }}>
+                                    {isEditMode ? "Save Changes" : "Submit Product"}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

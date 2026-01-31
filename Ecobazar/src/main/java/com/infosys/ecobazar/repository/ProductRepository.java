@@ -5,5 +5,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
-    // We can add a custom method to find products by category later if needed
+
+    // For the Shop: Show only Approved items
+    List<Product> findByIsApprovedTrue();
+
+    // For the Admin: Show only Pending items
+    List<Product> findByIsApprovedFalse();
 }

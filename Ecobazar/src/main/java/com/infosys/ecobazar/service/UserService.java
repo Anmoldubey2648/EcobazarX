@@ -4,7 +4,8 @@ import com.infosys.ecobazar.entity.User;
 import com.infosys.ecobazar.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.util.Optional;
+
+import java.util.List;
 
 @Service
 public class UserService {
@@ -12,26 +13,22 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    // Logic to Save a new User
-    public User registerUser(User user) {
-        // Check if email already exists to prevent duplicates
-        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
-            throw new RuntimeException("Email already exists!");
-        }
-        return userRepository.save(user);
+    // --- ADMIN FEATURES (Fixes the red errors) ---
+
+    // 1. Get all users from the database
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
     }
 
-    // Logic to Check Login credentials
-    public User loginUser(String email, String password) {
-        Optional<User> foundUser = userRepository.findByEmail(email);
+    // 2. Delete a user by ID
+    public void deleteUser(Long id) {
+        userRepository.deleteById(id);
+    }
+    // ... existing code ...
 
-        if (foundUser.isPresent()) {
-            User user = foundUser.get();
-            // Check if the password matches
-            if (user.getPassword().equals(password)) {
-                return user;
-            }
-        }
-        return null; // Return null if login fails
+    // 3. Get User by Email (For Profile Page)
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
     }
 }

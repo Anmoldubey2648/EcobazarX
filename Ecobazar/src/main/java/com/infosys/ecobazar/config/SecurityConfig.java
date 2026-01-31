@@ -8,7 +8,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -31,12 +31,20 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // Disable CSRF
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // <--- ENABLE CORS HERE
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**", "/error").permitAll()
-                        .requestMatchers("/products/add").hasRole("SELLER")
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/products/all").authenticated()
+
+                        // Allow Sellers to ADD
+                        .requestMatchers("/products/add").hasAnyAuthority("Seller", "SELLER", "ROLE_SELLER")
+
+                        // CHANGED: Allow Sellers AND Admins to DELETE
+                        .requestMatchers("/products/delete/**").hasAnyAuthority("ADMIN", "Admin", "ROLE_ADMIN", "Seller", "SELLER", "ROLE_SELLER")
+
+                        .requestMatchers("/users/profile").authenticated()
+                        .requestMatchers("/users/**").hasAnyAuthority("ADMIN", "Admin", "ROLE_ADMIN")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
@@ -47,11 +55,10 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // New Bean: This explicitly tells Spring Security to allow localhost:5173
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173")); // Your React Port
+        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);
@@ -63,7 +70,7 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return NoOpPasswordEncoder.getInstance();
+        return new BCryptPasswordEncoder();
     }
 
     @Bean
